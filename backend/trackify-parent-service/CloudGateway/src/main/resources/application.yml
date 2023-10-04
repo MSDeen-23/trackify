@@ -1,0 +1,26 @@
+server:
+  port: 3501
+spring:
+  application:
+    name: API-GATEWAY
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: USER-SERVICE
+          uri: ${USER_SERVICE_URL:http://localhost:3502}
+          predicates:
+            - Path=/api/v1/user/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: USER-SERVICE
+                fallbackuri: forward:/userServiceFallback
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty: DEBUG

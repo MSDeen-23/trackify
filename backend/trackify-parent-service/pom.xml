@@ -21,6 +21,7 @@
     </build>
     <modules>
         <module>CloudGateway</module>
+        <module>UserService</module>
     </modules>
 
     <properties>
@@ -28,5 +29,5 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
+    <packaging>pom</packaging>
 </project>
