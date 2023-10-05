@@ -2,10 +2,13 @@ package com.beworkerbee.userservice.controller;
 
 import com.beworkerbee.userservice.dto.AuthenticateRequest;
 import com.beworkerbee.userservice.dto.AuthenticationResponse;
-import com.beworkerbee.userservice.dto.RegisterRequest;
-import com.beworkerbee.userservice.service.AuthenticationService;
+import com.beworkerbee.userservice.dto.RegisterRequestUser;
+import com.beworkerbee.userservice.dto.RegisterRequestAdmin;
+import com.beworkerbee.userservice.service.impl.AuthenticationServiceImpl;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,12 +19,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthenticationController {
 
-    private final AuthenticationService authenticationService;
-    @PostMapping("/register")
+    private final AuthenticationServiceImpl authenticationService;
+    @PostMapping("/register-admin")
     public ResponseEntity<AuthenticationResponse> register(
-            @RequestBody RegisterRequest request
+            @Valid @RequestBody RegisterRequestAdmin request
     ){
-        return ResponseEntity.ok(authenticationService.register(request));
+        return ResponseEntity.ok(
+                authenticationService.register(request)
+        );
+    }
+
+    @PostMapping("/create-new-user")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<String> createNewUser(@Valid @RequestBody RegisterRequestUser request){
+        return ResponseEntity.ok(authenticationService.registerUser(request));
     }
 
     @PostMapping("/login")

@@ -2,6 +2,7 @@ package com.beworkerbee.userservice.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,16 +11,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+
 @Entity
 @Table(name = "trackify_user")
-public class User implements UserDetails {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+@Data
+@SuperBuilder
+@AllArgsConstructor
+@NoArgsConstructor
+public class User extends BaseEntity implements UserDetails {
+
 
     private String firstName;
 
@@ -31,6 +31,10 @@ public class User implements UserDetails {
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name="organization_id")
+    private Organization organization;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -66,4 +70,5 @@ public class User implements UserDetails {
     public String getPassword(){
         return password;
     }
+
 }

@@ -19,8 +19,19 @@ spring:
               args:
                 name: USER-SERVICE
                 fallbackuri: forward:/userServiceFallback
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+
 
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG
     reactor.netty: DEBUG
+
+microservices:
+  user: ${USER_SERVICE_URL:http://localhost:3502/}+/api/v1/user
+
