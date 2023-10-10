@@ -1,5 +1,7 @@
 package com.beworkerbee.userservice.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -7,6 +9,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -14,11 +17,13 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "trackify_user")
-@Data
+@Getter
+@Setter
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-public class User extends BaseEntity implements UserDetails {
+@JsonIgnoreProperties({"password"})
+public class User extends BaseEntity implements UserDetails, Serializable {
 
 
     private String firstName;
@@ -34,10 +39,12 @@ public class User extends BaseEntity implements UserDetails {
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name="organization_id")
+    @JsonIgnoreProperties("adminUser")
     private Organization organization;
 
     @ManyToOne
     @JoinColumn(name = "admin_user_id")
+    @JsonIgnoreProperties("organization")
     private User adminUser;
 
     @Override

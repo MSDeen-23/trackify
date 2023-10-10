@@ -12,21 +12,23 @@ import com.beworkerbee.userservice.exception.AlreadyExistsException;
 import com.beworkerbee.userservice.repository.OrganizationRepository;
 import com.beworkerbee.userservice.repository.UserRepository;
 import com.beworkerbee.userservice.service.AuthenticationService;
+import com.beworkerbee.userservice.service.ISpecification;
+import com.beworkerbee.userservice.service.impl.validations.OrganizationExistsSpecification;
+import com.beworkerbee.userservice.service.impl.validations.UserExistsSpecification;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -48,61 +50,64 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Transactional
     public AuthenticationResponse register(RegisterRequestAdmin request) {
 
-            log.debug("Creating new user with email address :{}", request.getEmail());
-            log.debug("Organization name : {} ", request.getOrganizationName());
+        log.debug("Creating new user with email address :{}", request.getEmail());
+        log.debug("Organization name : {} ", request.getOrganizationName());
 
-            // check if user is already present in the system
-            if(userRepository.existsByEmailAndActiveIsTrue(request.getEmail())){
-                log.error("User already present in the system");
-                throw new AlreadyExistsException("User");
+        // Creating new user
+        User user = User.builder()
+                .active(true)
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(Role.ADMIN)
+                .build();
+
+        // Creating new organization
+        Organization organization = Organization.builder()
+                .organizationName(request.getOrganizationName())
+                .adminUser(user)
+                .active(true)
+                .build();
+
+        // validate the organization and user
+        List<ISpecification> validations = Arrays.asList(
+                new UserExistsSpecification(userRepository, user), // checks if user with the email already present
+                new OrganizationExistsSpecification(organizationRepository, organization) // checks if the given organization is already present
+        );
+        for (ISpecification specification : validations) {
+            if(specification.isSatisfied()){
+                log.error("Specification satisfied "+specification.getClass().getName());
+                throw new AlreadyExistsException(specification.getEntity());
             }
-            // Creating new user
-            User user = User.builder()
-                    .active(true)
-                    .firstName(request.getFirstName())
-                    .lastName(request.getLastName())
-                    .email(request.getEmail())
-                    .password(passwordEncoder.encode(request.getPassword()))
-                    .role(Role.ADMIN)
-                    .build();
+        }
 
+        // set the organization of the user and save
+        user.setOrganization(organization);
 
-            // Creating organization
-            if(organizationRepository.existsByOrganizationName(request.getOrganizationName())){
-                throw new AlreadyExistsException("Organization");
-            }
-            Organization organization = Organization.builder()
-                    .organizationName(request.getOrganizationName())
-                    .adminUser(user)
-                    .active(true)
-                    .build();
+        // save organization
+        organizationRepository.save(organization);
+        // save user
+        userRepository.save(user);
 
-
-            // set the organization of the user and save
-            user.setOrganization(organization);
-
-            // save organization
-            organizationRepository.save(organization);
-            // save user
-            userRepository.save(user);
-
-            String jwtToken = jwtService.generateToken(user);
-            return AuthenticationResponse.builder()
-                    .token(jwtToken)
-                    .build();
+        String jwtToken = jwtService.generateToken(user);
+        return AuthenticationResponse.builder()
+                .token(jwtToken)
+                .build();
 
 
     }
 
     public AuthenticationResponse authenticate(AuthenticateRequest request) {
-        authenticate.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(),request.getPassword())
-        );
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(()-> new UsernameNotFoundException("Username not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("Username not found"));
+        authenticate.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+        );
+
         Map<String, Object> claims = new HashMap();
-        claims.put("role",user.getRole());
-        String jwtToken = jwtService.generateToken(claims,user);
+        claims.put("role", user.getRole());
+        String jwtToken = jwtService.generateToken(claims, user);
         return AuthenticationResponse.builder()
                 .token(jwtToken)
                 .build();
@@ -112,27 +117,30 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public String registerUser(RegisterRequestUser request) {
         // check if user already exists
         log.debug("Registering a new user");
-        if(userRepository.existsByEmailAndActiveIsTrue(request.getEmail())){
-            log.error("The email {} is already used",request.getEmail());
+        if (userRepository.existsByEmailAndActiveIsTrue(request.getEmail())) {
+            log.error("The email {} is already used", request.getEmail());
             throw new AlreadyExistsException("User");
         }
 
         // get the admin credentials from spring security (JWT)
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User adminUser = (User) authentication.getPrincipal();
+        User user = userRepository.findById(adminUser.getId()).get();
+        Organization organization = organizationRepository.findById(adminUser.getOrganization().getId()).get();
 
-
-        User user  = User.builder()
+        User newUser = User.builder()
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .organization(adminUser.getOrganization())
-                .adminUser(adminUser)
+                .organization(organization)
+                .adminUser(user)
                 .role(Role.USER)
+                .active(true)
                 .build();
 
-        userRepository.save(user);
+        userRepository.save(newUser);
+
         return "User created successfully";
     }
 }

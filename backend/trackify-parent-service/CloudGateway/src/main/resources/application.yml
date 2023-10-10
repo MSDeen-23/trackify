@@ -1,5 +1,5 @@
 server:
-  port: 3501
+  port: 8381
 spring:
   application:
     name: API-GATEWAY
@@ -11,7 +11,7 @@ spring:
           lower-case-service-id: true
       routes:
         - id: USER-SERVICE
-          uri: ${USER_SERVICE_URL:http://localhost:3502}
+          uri: ${USER_SERVICE_URL:http://localhost:8382}
           predicates:
             - Path=/api/v1/user/**
           filters:
@@ -33,5 +33,5 @@ logging:
     reactor.netty: DEBUG
 
 microservices:
-  user: ${USER_SERVICE_URL:http://localhost:3502/}+/api/v1/user
+  user: ${USER_SERVICE_URL:http://localhost:8382/}+/api/v1/user
 

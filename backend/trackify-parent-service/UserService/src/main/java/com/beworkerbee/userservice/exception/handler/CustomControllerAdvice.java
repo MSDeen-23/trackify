@@ -4,6 +4,8 @@ import com.beworkerbee.userservice.exception.AlreadyExistsException;
 import com.beworkerbee.userservice.exception.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -19,12 +21,30 @@ public class CustomControllerAdvice {
 
     }
 
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentialsException(BadCredentialsException e){
+        return new ResponseEntity<>(
+                new ErrorResponse(HttpStatus.UNAUTHORIZED,
+                        "Incorrect password"
+                ),HttpStatus.UNAUTHORIZED);
+
+    }
+
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUsernameNotFoundException(UsernameNotFoundException e){
+        return new ResponseEntity<>(
+                new ErrorResponse(HttpStatus.BAD_REQUEST,
+                        "Invalid username or password"
+                ),HttpStatus.BAD_REQUEST);
+
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception e){
         return new ResponseEntity<>(
                 new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR,
                         e.getMessage(),e.getStackTrace()
-                ),HttpStatus.CONFLICT);
+                ),HttpStatus.INTERNAL_SERVER_ERROR);
 
     }
 

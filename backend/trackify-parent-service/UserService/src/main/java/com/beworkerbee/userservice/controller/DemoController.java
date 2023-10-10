@@ -18,12 +18,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DemoController {
     private final DemoService demoService;
-//    @GetMapping
-//    @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ADMIN')")
-//    public ResponseEntity<String> hello(){
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        return demoService.demo();
-//    }
+
 
     @GetMapping("")
     @PreAuthorize("hasAuthority('ADMIN')")
@@ -31,5 +26,22 @@ public class DemoController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User userDetails = (User) authentication.getPrincipal();
         return ResponseEntity.ok(userDetails.getOrganization());
+    }
+
+    @GetMapping("/test-admin")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public ResponseEntity<String> test(){
+        return ResponseEntity.ok("Only admin can access");
+    }
+
+    @GetMapping("/test-user")
+    @PreAuthorize("hasAnyRole('USER')")
+    public ResponseEntity<String> testUser(){
+        return ResponseEntity.ok("Only user can access");
+    }
+    @GetMapping("/test-admin-user")
+    @PreAuthorize("hasAnyRole('USER','ADMIN') ")
+    public ResponseEntity<String> testUserAdmin(){
+        return ResponseEntity.ok("Only user and amin can access");
     }
 }
