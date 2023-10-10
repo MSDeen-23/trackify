@@ -11,6 +11,8 @@ import Contacts from "./scenes/contacts";
 import Form from "./scenes/form";
 import { useState } from "react";
 import Login from "./scenes/Login";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 // import Line from "./scenes/line";
 // import Pie from "./scenes/pie";
 // import FAQ from "./scenes/faq";
@@ -26,6 +28,7 @@ function App() {
   return (
     <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={theme}>
+        <ToastContainer />
         <CssBaseline />
 
         {isLoggedIn ? (

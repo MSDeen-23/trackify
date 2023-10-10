@@ -6,6 +6,11 @@ import { alpha } from "@mui/material/styles";
 import InputAdornment from "@mui/material/InputAdornment";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 import KeyOutlined from "@mui/icons-material/KeyOutlined";
+import { post } from "../../utils/axiosUtils";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Cookies from "js-cookie";
+
 const Login = (props) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -22,7 +27,25 @@ const Login = (props) => {
   });
 
   const handleLogin = (values) => {
-    props.handleLogin();
+    // props.handleLogin();
+    post("user/auth/login", values)
+      .then((response) => {
+        Cookies.set("authToken", response.token, {
+          secure: true,
+          sameSite: "strict",
+          expires: 7,
+        });
+        toast.success("Welcome back", { theme: "dark" });
+        props.handleLogin();
+      })
+      .catch((error) => {
+        toast.error(
+          error?.response?.data?.message
+            ? error.response.data.message
+            : "An error occurred",
+          { theme: "dark" }
+        );
+      });
   };
 
   return (
