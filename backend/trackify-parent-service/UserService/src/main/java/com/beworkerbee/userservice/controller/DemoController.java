@@ -1,5 +1,6 @@
 package com.beworkerbee.userservice.controller;
 
+import com.beworkerbee.userservice.entity.Organization;
 import com.beworkerbee.userservice.entity.User;
 import com.beworkerbee.userservice.service.DemoService;
 import lombok.RequiredArgsConstructor;
@@ -26,10 +27,9 @@ public class DemoController {
 
     @GetMapping("")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<String> hello(@RequestParam UUID orgId){
+    public ResponseEntity<Organization> hello(@RequestParam UUID orgId){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User userDetails = (User) authentication.getPrincipal();
-        userDetails.getOrganization();
-        return demoService.demo();
+        return ResponseEntity.ok(userDetails.getOrganization());
     }
 }

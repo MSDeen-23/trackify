@@ -36,6 +36,10 @@ public class User extends BaseEntity implements UserDetails {
     @JoinColumn(name="organization_id")
     private Organization organization;
 
+    @ManyToOne
+    @JoinColumn(name = "admin_user_id")
+    private User adminUser;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));

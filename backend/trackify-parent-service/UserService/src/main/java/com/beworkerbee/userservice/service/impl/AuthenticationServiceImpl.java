@@ -8,16 +8,20 @@ import com.beworkerbee.userservice.dto.RegisterRequestAdmin;
 import com.beworkerbee.userservice.entity.Organization;
 import com.beworkerbee.userservice.entity.Role;
 import com.beworkerbee.userservice.entity.User;
-import com.beworkerbee.userservice.exception.OrganizationAlreadyPresentException;
-import com.beworkerbee.userservice.exception.UserAlreadyExistsException;
+import com.beworkerbee.userservice.exception.AlreadyExistsException;
 import com.beworkerbee.userservice.repository.OrganizationRepository;
 import com.beworkerbee.userservice.repository.UserRepository;
 import com.beworkerbee.userservice.service.AuthenticationService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -48,9 +52,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             log.debug("Organization name : {} ", request.getOrganizationName());
 
             // check if user is already present in the system
-            if(userRepository.existsByEmail(request.getEmail())){
+            if(userRepository.existsByEmailAndActiveIsTrue(request.getEmail())){
                 log.error("User already present in the system");
-                throw new UserAlreadyExistsException();
+                throw new AlreadyExistsException("User");
             }
             // Creating new user
             User user = User.builder()
@@ -65,7 +69,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
             // Creating organization
             if(organizationRepository.existsByOrganizationName(request.getOrganizationName())){
-                throw new OrganizationAlreadyPresentException();
+                throw new AlreadyExistsException("Organization");
             }
             Organization organization = Organization.builder()
                     .organizationName(request.getOrganizationName())
@@ -106,16 +110,29 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public String registerUser(RegisterRequestUser request) {
+        // check if user already exists
+        log.debug("Registering a new user");
+        if(userRepository.existsByEmailAndActiveIsTrue(request.getEmail())){
+            log.error("The email {} is already used",request.getEmail());
+            throw new AlreadyExistsException("User");
+        }
+
+        // get the admin credentials from spring security (JWT)
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User adminUser = (User) authentication.getPrincipal();
+
+
         User user  = User.builder()
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
+                .organization(adminUser.getOrganization())
+                .adminUser(adminUser)
                 .role(Role.USER)
                 .build();
 
         userRepository.save(user);
-        String jwtToken = jwtService.generateToken(user);
         return "User created successfully";
     }
 }
