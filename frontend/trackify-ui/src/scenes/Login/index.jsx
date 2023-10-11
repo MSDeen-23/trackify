@@ -1,4 +1,11 @@
-import { Box, TextField, Button, useTheme, Typography } from "@mui/material";
+import {
+  Box,
+  TextField,
+  Button,
+  useTheme,
+  Typography,
+  IconButton,
+} from "@mui/material";
 import { Formik } from "formik";
 import * as yup from "yup";
 import { tokens } from "../../theme";
@@ -10,14 +17,28 @@ import { post } from "../../utils/axiosUtils";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Cookies from "js-cookie";
-
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { get } from "../../utils/axiosUtils";
+import { useDispatch } from "react-redux";
+import { addUser, changeLoginState } from "../../features/login/loginSlice";
 const Login = (props) => {
+  // setting themes
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+
+  // setting initial values
   const initialValuesForLogin = {
     email: "",
     password: "",
   };
+
+  const dispatch = useDispatch();
+  // defining validations
   const userSchema = yup.object().shape({
     email: yup
       .string()
@@ -26,17 +47,38 @@ const Login = (props) => {
     password: yup.string().required("Password is required"),
   });
 
+
+  const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+  // init call
+  useEffect(() => {
+    const token = Cookies.get("authToken");
+    if (token != null) {
+      get("/user/auth/init-validate-token")
+        .then((response) => {
+          dispatch(changeLoginState(true));
+          dispatch(addUser(response));
+        })
+        .catch((error) => {
+
+        });
+    } else {
+
+    }
+  }, [dispatch, navigate]);
+
   const handleLogin = (values) => {
-    // props.handleLogin();
     post("user/auth/login", values)
       .then((response) => {
-        Cookies.set("authToken", response.token, {
+        Cookies.set("authToken", response.jwtToken, {
           secure: true,
           sameSite: "strict",
           expires: 7,
         });
-        toast.success("Welcome back", { theme: "dark" });
-        props.handleLogin();
+        toast.success("Welcome back " + response.firstName, { theme: "dark" });
+        dispatch(changeLoginState(true));
+        dispatch(addUser(response));
+        navigate("/home");
       })
       .catch((error) => {
         toast.error(
@@ -48,7 +90,9 @@ const Login = (props) => {
       });
   };
 
+
   return (
+
     <Box>
       <Box
         display="flex"
@@ -109,7 +153,7 @@ const Login = (props) => {
                   {/* Password */}
                   <TextField
                     variant="outlined"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     label="Password"
                     onBlur={handleBlur}
                     onChange={handleChange}
@@ -123,20 +167,50 @@ const Login = (props) => {
                           <KeyOutlined />
                         </InputAdornment>
                       ),
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setShowPassword(!showPassword)}
+                            onMouseDown={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? (
+                              <VisibilityOutlinedIcon />
+                            ) : (
+                              <VisibilityOffOutlinedIcon />
+                            )}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
                     }}
                   ></TextField>
-                  <Box display="flex" justifyContent="end" mt="20px">
-                    <Button type="submit" color="secondary" variant="contained">
+
+
+                  <Box display="flex" justifyContent="end">
+                    <Button type="submit" color="secondary" variant="contained" fullWidth>
                       Login
                     </Button>
                   </Box>
+                  <Box>
+                    <Button style={{ color: `${colors.grey[100]}` }} variant="text" fullWidth >
+                      <Link to="/register">Create a new user</Link>
+                    </Button>
+                  </Box>
+
+
                 </Box>
+
               </Box>
+
             </form>
           )}
+
         </Formik>
+
       </Box>
-    </Box>
+
+    </Box >
+
+
   );
 };
 

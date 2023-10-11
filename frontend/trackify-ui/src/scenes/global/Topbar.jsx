@@ -8,11 +8,22 @@ import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import SearchIcon from "@mui/icons-material/Search";
-
+import { useDispatch } from "react-redux";
+import { changeLoginState } from "../../features/login/loginSlice";
+import Cookies from "js-cookie";
+import { useNavigate } from "react-router-dom";
 const Topbar = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const colorMode = useContext(ColorModeContext);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    Cookies.remove("authToken");
+    dispatch(changeLoginState(false));
+    navigate("/");
+    window.location.reload();
+  }
 
   return (
     <Box display="flex" justifyContent="space-between" p={2}>
@@ -43,7 +54,7 @@ const Topbar = () => {
         <IconButton>
           <SettingsOutlinedIcon />
         </IconButton>
-        <IconButton>
+        <IconButton onClick={handleLogout}>
           <PersonOutlineOutlinedIcon />
         </IconButton>
       </Box>

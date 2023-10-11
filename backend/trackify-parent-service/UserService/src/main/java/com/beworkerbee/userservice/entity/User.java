@@ -82,4 +82,6 @@ public class User extends BaseEntity implements UserDetails, Serializable {
         return password;
     }
 
+    @Transient
+    private String jwtToken;
 }

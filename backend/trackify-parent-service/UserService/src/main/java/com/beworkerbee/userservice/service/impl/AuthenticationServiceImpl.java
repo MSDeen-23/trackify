@@ -48,7 +48,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     @Transactional
-    public AuthenticationResponse register(RegisterRequestAdmin request) {
+    public User register(RegisterRequestAdmin request) {
 
         log.debug("Creating new user with email address :{}", request.getEmail());
         log.debug("Organization name : {} ", request.getOrganizationName());
@@ -88,17 +88,18 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         // save organization
         organizationRepository.save(organization);
         // save user
+        String jwtToken = jwtService.generateToken(user);
+        user.setJwtToken(jwtToken);
         userRepository.save(user);
 
-        String jwtToken = jwtService.generateToken(user);
-        return AuthenticationResponse.builder()
-                .token(jwtToken)
-                .build();
+
+
+        return user;
 
 
     }
 
-    public AuthenticationResponse authenticate(AuthenticateRequest request) {
+    public User authenticate(AuthenticateRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("Username not found"));
         authenticate.authenticate(
@@ -108,9 +109,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         Map<String, Object> claims = new HashMap();
         claims.put("role", user.getRole());
         String jwtToken = jwtService.generateToken(claims, user);
-        return AuthenticationResponse.builder()
-                .token(jwtToken)
-                .build();
+        user.setJwtToken(jwtToken);
+        return user;
     }
 
     @Override

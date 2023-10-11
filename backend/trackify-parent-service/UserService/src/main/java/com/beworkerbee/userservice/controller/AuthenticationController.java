@@ -25,7 +25,7 @@ public class AuthenticationController {
 
     private final AuthenticationServiceImpl authenticationService;
     @PostMapping("/register-admin")
-    public ResponseEntity<AuthenticationResponse> register(
+    public ResponseEntity<User> register(
             @Valid @RequestBody RegisterRequestAdmin request
     ){
         return ResponseEntity.ok(
@@ -40,7 +40,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthenticationResponse> login(
+    public ResponseEntity<User> login(
             @RequestBody AuthenticateRequest request
     ){
         return ResponseEntity.ok(authenticationService.authenticate(request));
