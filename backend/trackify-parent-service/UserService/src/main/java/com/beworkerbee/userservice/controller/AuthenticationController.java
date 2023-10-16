@@ -33,11 +33,6 @@ public class AuthenticationController {
         );
     }
 
-    @PostMapping("/create-new-user")
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<String> createNewUser(@Valid @RequestBody RegisterRequestUser request){
-        return ResponseEntity.ok(authenticationService.registerUser(request));
-    }
 
     @PostMapping("/login")
     public ResponseEntity<User> login(

@@ -3,35 +3,40 @@ import { Formik } from "formik";
 import * as yup from "yup";
 import { useMediaQuery } from "@mui/material";
 import Header from "../../components/Header";
-
+import { post } from "../../utils/axiosUtils";
+import { toast } from "react-toastify";
 const Form = () => {
   const isNonMobile = useMediaQuery("(min-width:600px)");
   const initialValues = {
     firstName: "",
     lastName: "",
     email: "",
-    contact: "",
-    address1: "",
-    address2: "",
+    password: ""
   };
 
-  const phoneRegExp =
-    /^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$/;
 
   const userSchema = yup.object().shape({
     firstName: yup.string().required("required"),
     lastName: yup.string().required("required"),
     email: yup.string().email("Email is not valid").required("required"),
-    contact: yup
-      .string()
-      .matches(phoneRegExp, "Phone number is not valid")
-      .required("required"),
-    address1: yup.string().required("required"),
-    address2: yup.string().required("required"),
+    password: yup.string().required("Password is required")
   });
 
   const handleFormSubmit = (values) => {
-    console.log(values);
+    post("user/auth/create-new-user", values)
+      .then((response) => {
+        toast.success("Added new user to your team! " + response.firstName, { theme: "dark" });
+
+
+      })
+      .catch((error) => {
+        toast.error(
+          error?.response?.data?.message
+            ? error.response.data.message
+            : "An error occurred",
+          { theme: "dark" }
+        );
+      })
   };
 
   return (
@@ -102,42 +107,17 @@ const Form = () => {
               <TextField
                 fullWidth
                 variant="filled"
-                type="text"
-                label="Contact Number"
+                type="password"
+                label="Password"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.contact}
-                name="contact"
+                value={values.password}
+                name="password"
                 error={!!touched.contact && !!errors.contact}
-                helperText={touched.contact && errors.contact}
+                helperText={!!touched.contact && errors.contact}
                 sx={{ gridColumn: "span 4" }}
               />
-              <TextField
-                fullWidth
-                variant="filled"
-                type="text"
-                label="Address 1"
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.address1}
-                name="address1"
-                error={!!touched.address1 && !!errors.address1}
-                helperText={touched.address1 && errors.address1}
-                sx={{ gridColumn: "span 4" }}
-              />
-              <TextField
-                fullWidth
-                variant="filled"
-                type="text"
-                label="Address 2"
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.address2}
-                name="address2"
-                error={!!touched.address2 && !!errors.address2}
-                helperText={touched.address2 && errors.address2}
-                sx={{ gridColumn: "span 4" }}
-              />
+
             </Box>
             <Box display="flex" justifyContent="end" mt="20px">
               <Button type="submit" color="secondary" variant="contained">

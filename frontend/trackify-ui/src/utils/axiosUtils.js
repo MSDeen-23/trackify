@@ -2,8 +2,8 @@ import axios from "axios";
 import Cookies from "js-cookie";
 // this links doesn't need any authentication
 const linksWithoutAuthentication = [
-  "/api/v1/user/auth/register-admin",
-  "/api/v1/user/auth/login",
+  "user/auth/register-admin",
+  "user/auth/login",
 ];
 
 // initialize axios instance
@@ -19,6 +19,8 @@ const instance = axios.create({
 export const get = async (url, params = {}) => {
   try {
     let response;
+    console.log(url);
+    console.log(linksWithoutAuthentication.includes(url));
     if (linksWithoutAuthentication.includes(url)) {
       response = await instance.get(url, { params });
     } else {
@@ -37,7 +39,17 @@ export const get = async (url, params = {}) => {
 
 export const post = async (url, data = {}) => {
   try {
-    const response = await instance.post(url, data);
+    let response;
+    console.log(url);
+    console.log(linksWithoutAuthentication.includes(url));
+    if (linksWithoutAuthentication.includes(url)) {
+      response = await instance.post(url, data);
+    } else {
+      const authToken = Cookies.get("authToken");
+      response = await instance.post(url, data, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+    }
     return response.data;
   } catch (error) {
     throw error;

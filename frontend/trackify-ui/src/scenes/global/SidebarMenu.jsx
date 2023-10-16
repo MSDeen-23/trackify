@@ -137,7 +137,7 @@ const SidebarMenu = () => {
               color={colors.grey[300]}
               sx={{ m: "15px 0 5px 20px" }}
             >
-              Data
+              Organization
             </Typography>
             <Item
               title="Manage Team"
@@ -146,6 +146,21 @@ const SidebarMenu = () => {
               selected={selected}
               setSelected={setSelected}
             />
+            <Item
+              title="Add team member"
+              to="/form"
+              icon={<PersonOutlinedIcon />}
+              selected={selected}
+              setSelected={setSelected}
+            />
+
+            <Typography
+              variant="h6"
+              color={colors.grey[300]}
+              sx={{ m: "15px 0 5px 20px" }}
+            >
+              Pages
+            </Typography>
             <Item
               title="Contacts"
               to="/contacts"
@@ -160,20 +175,7 @@ const SidebarMenu = () => {
               selected={selected}
               setSelected={setSelected}
             />
-            <Typography
-              variant="h6"
-              color={colors.grey[300]}
-              sx={{ m: "15px 0 5px 20px" }}
-            >
-              Pages
-            </Typography>
-            <Item
-              title="Profile Form"
-              to="/form"
-              icon={<PersonOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
+
             <Item
               title="Calendar"
               to="/calendar"

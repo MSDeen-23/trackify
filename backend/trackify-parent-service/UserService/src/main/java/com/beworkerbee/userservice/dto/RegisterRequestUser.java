@@ -1,5 +1,6 @@
 package com.beworkerbee.userservice.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Index;
 import jakarta.validation.constraints.Email;
@@ -17,11 +18,11 @@ import org.springframework.stereotype.Indexed;
 public class RegisterRequestUser {
 
     @NotBlank(message = "Firstname is mandatory")
-    @JsonProperty("first_name")
+    @JsonAlias({"first_name","firstName"})
     private String firstName;
 
     @NotBlank(message = "Lastname is mandatory")
-    @JsonProperty("last_name")
+    @JsonAlias({"last_name","lastName"})
     private String lastName;
 
     @NotBlank(message = "Email is mandatory")
