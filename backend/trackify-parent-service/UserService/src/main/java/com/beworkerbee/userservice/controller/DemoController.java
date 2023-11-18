@@ -22,23 +22,13 @@ public class DemoController {
 
     @GetMapping("")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<Organization> hello(@RequestParam UUID orgId){
+    public ResponseEntity<Organization> getOrganization(@RequestParam UUID orgId){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User userDetails = (User) authentication.getPrincipal();
         return ResponseEntity.ok(userDetails.getOrganization());
     }
 
-    @GetMapping("/test-admin")
-    @PreAuthorize("hasAnyRole('ADMIN')")
-    public ResponseEntity<String> test(){
-        return ResponseEntity.ok("Only admin can access");
-    }
 
-    @GetMapping("/test-user")
-    @PreAuthorize("hasAnyRole('USER')")
-    public ResponseEntity<String> testUser(){
-        return ResponseEntity.ok("Only user can access");
-    }
     @GetMapping("/test-admin-user")
     @PreAuthorize("hasAnyRole('USER','ADMIN') ")
     public ResponseEntity<String> testUserAdmin(){
