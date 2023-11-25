@@ -22,6 +22,8 @@
     <modules>
         <module>CloudGateway</module>
         <module>UserService</module>
+        <module>EmailService</module>
+        <module>utils</module>
     </modules>
 
     <properties>

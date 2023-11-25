@@ -78,6 +78,9 @@ const Team = () => {
             borderTop: "none",
             backgroundColor: colors.blueAccent[700],
           },
+          "& .MuiDataGrid-root": {
+            fontSize: 16
+          }
         }}
       >
         <DataGrid rows={mockDataTeam} columns={columns} />

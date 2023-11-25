@@ -1,11 +1,8 @@
 package com.beworkerbee.userservice.service.impl.validations;
 
-import com.beworkerbee.userservice.dto.RegisterRequestAdmin;
-import com.beworkerbee.userservice.entity.Organization;
-import com.beworkerbee.userservice.exception.AlreadyExistsException;
-import com.beworkerbee.userservice.repository.OrganizationRepository;
 import com.beworkerbee.userservice.service.ISpecification;
-import org.springframework.stereotype.Service;
+import com.beworkerbee.userservice.entity.Organization;
+import com.beworkerbee.userservice.repository.OrganizationRepository;
 
 
 public class OrganizationExistsSpecification implements ISpecification {

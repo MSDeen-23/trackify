@@ -23,7 +23,7 @@ const Form = () => {
   });
 
   const handleFormSubmit = (values) => {
-    post("user/auth/create-new-user", values)
+    post("user/admin/create-new-user", values)
       .then((response) => {
         toast.success("Added new user to your team! " + response.firstName, { theme: "dark" });
 

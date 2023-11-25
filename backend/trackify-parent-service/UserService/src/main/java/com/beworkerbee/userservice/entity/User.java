@@ -1,9 +1,11 @@
 package com.beworkerbee.userservice.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -11,8 +13,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 
 @Entity
@@ -30,6 +32,7 @@ public class User extends BaseEntity implements UserDetails, Serializable {
 
     private String lastName;
 
+    @Column(unique = true)
     private String email;
 
     private String password;
@@ -46,6 +49,13 @@ public class User extends BaseEntity implements UserDetails, Serializable {
     @JoinColumn(name = "admin_user_id")
     @JsonIgnoreProperties("organization")
     private User adminUser;
+
+    private String verifyOtp;
+
+    private Date verifyOtpCreatedTime;
+
+    @Enumerated(EnumType.STRING)
+    private InactiveReason inactiveReason;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -84,4 +94,6 @@ public class User extends BaseEntity implements UserDetails, Serializable {
 
     @Transient
     private String jwtToken;
+
+
 }

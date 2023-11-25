@@ -2,8 +2,6 @@ package com.beworkerbee.userservice.service.impl;
 
 import com.beworkerbee.userservice.config.JwtService;
 import com.beworkerbee.userservice.dto.AuthenticateRequest;
-import com.beworkerbee.userservice.dto.AuthenticationResponse;
-import com.beworkerbee.userservice.dto.RegisterRequestUser;
 import com.beworkerbee.userservice.dto.RegisterRequestAdmin;
 import com.beworkerbee.userservice.entity.Organization;
 import com.beworkerbee.userservice.entity.Role;
@@ -15,9 +13,14 @@ import com.beworkerbee.userservice.service.AuthenticationService;
 import com.beworkerbee.userservice.service.ISpecification;
 import com.beworkerbee.userservice.service.impl.validations.OrganizationExistsSpecification;
 import com.beworkerbee.userservice.service.impl.validations.UserExistsSpecification;
+import com.beworkerbee.utils.dto.SendEmailDto;
+import com.beworkerbee.utils.kafkautils.KafkaUtils;
+import com.beworkerbee.userservice.dto.RegisterRequestUser;
+import com.beworkerbee.userservice.entity.InactiveReason;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -26,10 +29,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
@@ -46,21 +47,27 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private final AuthenticationManager authenticate;
 
+    @Autowired
+    private KafkaUtils kafkaUtils;
+
     @Override
     @Transactional
     public User register(RegisterRequestAdmin request) {
 
         log.debug("Creating new user with email address :{}", request.getEmail());
         log.debug("Organization name : {} ", request.getOrganizationName());
-
+        String verifyOtp = String.format("%06d", ThreadLocalRandom.current().nextInt(100000, 1000000));
         // Creating new user
         User user = User.builder()
-                .active(true)
+                .active(false)
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.ADMIN)
+                .verifyOtp(verifyOtp)
+                .verifyOtpCreatedTime(new Date())
+                .inactiveReason(InactiveReason.NOT_VERIFIED)
                 .build();
 
         // Creating new organization
@@ -91,12 +98,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         String jwtToken = jwtService.generateToken(user);
         user.setJwtToken(jwtToken);
         userRepository.save(user);
-
-
-
         return user;
-
-
     }
 
     public User authenticate(AuthenticateRequest request) {
@@ -125,8 +127,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         // get the admin credentials from spring security (JWT)
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User adminUser = (User) authentication.getPrincipal();
+
+        // from token get the admin and the organization details
         User user = userRepository.findById(adminUser.getId()).get();
         Organization organization = organizationRepository.findById(adminUser.getOrganization().getId()).get();
+
+        // generate the verify otp
+        String verifyOtp = String.format("%06d", ThreadLocalRandom.current().nextInt(100000, 1000000));
 
         User newUser = User.builder()
                 .firstName(request.getFirstName())
@@ -136,10 +143,23 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .organization(organization)
                 .adminUser(user)
                 .role(Role.USER)
-                .active(true)
+                .active(false)
+                .verifyOtp(verifyOtp)
+                .verifyOtpCreatedTime(new Date())
+                .inactiveReason(InactiveReason.NOT_VERIFIED)
                 .build();
 
+        // save the new user
         userRepository.save(newUser);
+
+        // Send a verification email
+        log.info("Sending verification email to "+request.getEmail());
+        SendEmailDto sendEmailDto = SendEmailDto.builder()
+                .to(request.getEmail())
+                .subject("Email otp")
+                .content("Welcome to trackify.io your otp is "+verifyOtp)
+                .build();
+        kafkaUtils.sendMessage("emailNotification",sendEmailDto);
 
         return "User created successfully";
     }
