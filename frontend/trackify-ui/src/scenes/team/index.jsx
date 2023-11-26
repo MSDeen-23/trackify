@@ -18,17 +18,15 @@ const Team = () => {
       flex: 1,
       cellClassName: "name-column-cell",
     },
-    { field: "age", headerName: "Age", type: "number", headerAlign: "left" },
-    { field: "phone", headerName: "Phone Number", flex: 1 },
     { field: "email", headerName: "Email", flex: 1 },
     {
       field: "access",
-      headerName: "Access Level",
+      headerName: "Role",
       flex: 1,
       renderCell: ({ row: { access } }) => {
         return (
           <Box
-            width="60%"
+            width="100%"
             m="0 auto"
             p="5px"
             display="flex"

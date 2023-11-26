@@ -60,7 +60,9 @@ const Login = (props) => {
           dispatch(addUser(response));
         })
         .catch((error) => {
-
+          if (error?.response?.status === 451) {
+            navigate("/verify");
+          }
         });
     } else {
 
@@ -75,12 +77,24 @@ const Login = (props) => {
           sameSite: "strict",
           expires: 7,
         });
-        toast.success("Welcome back " + response.firstName, { theme: "dark" });
-        dispatch(changeLoginState(true));
-        dispatch(addUser(response));
-        navigate("/home");
+        get("/user/auth/init-validate-token")
+          .then((response) => {
+            toast.success("Welcome back " + response.firstName, { theme: "dark" });
+            dispatch(changeLoginState(true));
+            dispatch(addUser(response));
+            navigate("/home");
+          })
+          .catch((error) => {
+            if (error?.response?.status === 451) {
+              navigate("/verify");
+            }
+          });
       })
       .catch((error) => {
+        console.log(error?.response);
+        if (error?.response?.status === 451) {
+          navigate("/verify?email=" + values.email);
+        }
         toast.error(
           error?.response?.data?.message
             ? error.response.data.message
@@ -126,9 +140,9 @@ const Login = (props) => {
                 <Box
                   display="flex"
                   flexDirection="column"
-                  width="300px"
+                  width="370px"
                   margin="25px 0"
-                  gap="30px"
+                  gap="20px"
                 >
                   <Typography variant="h2">Welcome back!</Typography>
                   {/* Email */}
@@ -190,11 +204,16 @@ const Login = (props) => {
                       Login
                     </Button>
                   </Box>
-                  <Box>
-                    <Button style={{ color: `${colors.grey[100]}` }} variant="text" fullWidth >
-                      <Link to="/register">Create a new user</Link>
+
+                  <Box display="flex">
+                    <Button variant="text" fullWidth >
+                      <Link style={{ color: `${colors.grey[600]}` }} to="/reset-password">Reset password</Link>
+                    </Button>
+                    <Button variant="text" fullWidth >
+                      <Link to="/register" style={{ color: `${colors.grey[600]}` }}>Don't have an account?</Link>
                     </Button>
                   </Box>
+
 
 
                 </Box>

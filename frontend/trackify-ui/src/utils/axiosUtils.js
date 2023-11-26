@@ -4,6 +4,8 @@ import Cookies from "js-cookie";
 const linksWithoutAuthentication = [
   "user/auth/register-admin",
   "user/auth/login",
+  "user/auth/reset-password",
+  "user/auth/set-new-password",
 ];
 
 // initialize axios instance
@@ -40,8 +42,6 @@ export const get = async (url, params = {}) => {
 export const post = async (url, data = {}) => {
   try {
     let response;
-    console.log(url);
-    console.log(linksWithoutAuthentication.includes(url));
     if (linksWithoutAuthentication.includes(url)) {
       response = await instance.post(url, data);
     } else {

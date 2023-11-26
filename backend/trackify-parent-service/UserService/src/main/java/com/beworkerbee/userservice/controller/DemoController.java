@@ -19,7 +19,7 @@ public class DemoController {
     private final DemoService demoService;
 
 
-    @GetMapping("")
+    @GetMapping()
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Organization> getOrganization(@RequestParam UUID orgId){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -31,6 +31,6 @@ public class DemoController {
     @GetMapping("/test-admin-user")
     @PreAuthorize("hasAnyRole('USER','ADMIN') ")
     public ResponseEntity<String> testUserAdmin(){
-        return ResponseEntity.ok("Only user and amin can access");
+        return ResponseEntity.ok("Only user and admin can access");
     }
 }

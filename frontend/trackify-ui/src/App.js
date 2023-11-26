@@ -15,16 +15,49 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useSelector } from "react-redux";
 import EmptyScene from "./scenes/EmptyScene";
+import Verify from "./scenes/Verify";
+import ResetPassword from "./scenes/ResetPassword";
+import SockJsClient from "react-stomp";
+import { useState } from "react";
+import { toast } from "react-toastify";
+
+const SOCKET_URL = "http://localhost:8383/api/v1/notification/ws-message";
 
 function App() {
+  const [topics, setTopics] = useState([]);
   const [theme, colorMode] = useMode();
 
-  // const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const handleLogin = () => {
-    console.log("Change it");
+  let onMessageReceived = (msg) => {
+    console.log(msg);
+    switch (msg.notificationType) {
+      case "INFO":
+        toast.info(msg.content, { theme: "dark" });
+        break;
+      case "SUCCESS":
+        toast.success(msg.content, { theme: "dark" });
+        break;
+      case "WARNING":
+        toast.warn(msg.content, { theme: "dark" });
+        break;
+      case "ERROR":
+        toast.error(msg.content, { theme: "dark" });
+        break;
+      default:
+        toast.info(msg.content, { theme: "dark" });
+        break;
+    }
   };
+
+  // const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   const isLoggedIn = useSelector((state) => state.login.payload);
-  console.log(isLoggedIn);
+  const loggedInUser = useSelector((state) => state.user);
+  console.log(loggedInUser.id);
+  let onConnected = () => {
+    setTopics(["/topic/" + loggedInUser.id]);
+    console.log("Connected!!");
+  };
+
   return (
     <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={theme}>
@@ -33,6 +66,16 @@ function App() {
 
         {isLoggedIn ? (
           <div className="app">
+            <div>
+              <SockJsClient
+                url={SOCKET_URL}
+                topics={topics}
+                onConnect={onConnected}
+                onDisconnect={console.log("Disconnected!")}
+                onMessage={(msg) => onMessageReceived(msg)}
+                debug={false}
+              />
+            </div>
             <SidebarMenu />
             <main className="content">
               <Topbar />
@@ -50,15 +93,11 @@ function App() {
         ) : (
           <div>
             <Routes>
-              <Route path="/" element={<Login handleLogin={handleLogin} />} />
-              <Route
-                path="/login"
-                element={<Login handleLogin={handleLogin} />}
-              />
-              <Route
-                path="/register"
-                element={<Register handleLogin={handleLogin} />}
-              />
+              <Route path="/" element={<Login />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/verify" element={<Verify />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="*" exact={true} element={<EmptyScene />} />
             </Routes>
           </div>

@@ -2,6 +2,8 @@ package com.beworkerbee.userservice.exception.handler;
 
 import com.beworkerbee.userservice.exception.AlreadyExistsException;
 import com.beworkerbee.userservice.exception.ErrorResponse;
+import com.beworkerbee.userservice.exception.OtpVerificationException;
+import com.beworkerbee.userservice.exception.UserNotVerifiedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -38,6 +40,23 @@ public class CustomControllerAdvice {
                 ),HttpStatus.BAD_REQUEST);
 
     }
+    @ExceptionHandler(UserNotVerifiedException.class)
+    public ResponseEntity<ErrorResponse> handleUserNotVerifiedException(UserNotVerifiedException e){
+        return new ResponseEntity<>(
+                new ErrorResponse(HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS,
+                        e.getMessage(),e.getStackTrace()
+                ),HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS);
+
+    }
+
+    @ExceptionHandler(OtpVerificationException.class)
+    public ResponseEntity<ErrorResponse> handleOtpVerificationException(OtpVerificationException e){
+        return new ResponseEntity<>(
+                new ErrorResponse(HttpStatus.EXPECTATION_FAILED,
+                        e.getMessage(),e.getStackTrace()
+                ),HttpStatus.EXPECTATION_FAILED);
+
+    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception e){
@@ -47,5 +66,7 @@ public class CustomControllerAdvice {
                 ),HttpStatus.INTERNAL_SERVER_ERROR);
 
     }
+
+
 
 }

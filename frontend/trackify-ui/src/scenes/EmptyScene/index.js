@@ -5,10 +5,11 @@ import { useEffect } from "react";
 import { get } from "../../utils/axiosUtils";
 import { useDispatch } from "react-redux";
 import { addUser, changeLoginState } from "../../features/login/loginSlice";
+import { useNavigate } from "react-router-dom";
 
 const EmptyScene = (props) => {
   const dispatch = useDispatch();
-
+  const navigate = useNavigate();
   useEffect(() => {
     const token = Cookies.get("authToken");
     if (token != null) {
@@ -18,8 +19,11 @@ const EmptyScene = (props) => {
           dispatch(addUser(response));
         })
         .catch((error) => {
+          if (error?.response?.status === 451) {
+            navigate("/verify");
+          }
           dispatch(changeLoginState(false));
-          window.location.reload();
+          navigate("/login");
         });
     } else {
     }
