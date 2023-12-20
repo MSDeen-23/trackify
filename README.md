@@ -39,4 +39,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## Contact
 
-For any inquiries or support, please contact our team at [support@trackify.io](mailto:support@trackify.io).
+For any inquiries or support, please contact our team at [trackify.io@gmail.com](mailto:support@trackify.io).
