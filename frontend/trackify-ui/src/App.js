@@ -21,14 +21,13 @@ import SockJsClient from "react-stomp";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
-const SOCKET_URL = "http://localhost:8383/api/v1/notification/ws-message";
+const SOCKET_URL = process.env.REACT_APP_SOCKET_URL;
 
 function App() {
   const [topics, setTopics] = useState([]);
   const [theme, colorMode] = useMode();
 
   let onMessageReceived = (msg) => {
-    console.log(msg);
     switch (msg.notificationType) {
       case "INFO":
         toast.info(msg.content, { theme: "dark" });
@@ -52,10 +51,8 @@ function App() {
 
   const isLoggedIn = useSelector((state) => state.login.payload);
   const loggedInUser = useSelector((state) => state.user);
-  console.log(loggedInUser.id);
   let onConnected = () => {
     setTopics(["/topic/" + loggedInUser.id]);
-    console.log("Connected!!");
   };
 
   return (
@@ -71,7 +68,6 @@ function App() {
                 url={SOCKET_URL}
                 topics={topics}
                 onConnect={onConnected}
-                onDisconnect={console.log("Disconnected!")}
                 onMessage={(msg) => onMessageReceived(msg)}
                 debug={false}
               />
@@ -98,7 +94,7 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/verify" element={<Verify />} />
               <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="*" exact={true} element={<EmptyScene />} />
+              <Route path="*" exact={true} element={<Login />} />
             </Routes>
           </div>
         )}

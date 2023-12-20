@@ -1,5 +1,6 @@
 package com.beworkerbee.userservice.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -50,8 +51,10 @@ public class User extends BaseEntity implements UserDetails, Serializable {
     @JsonIgnoreProperties("organization")
     private User adminUser;
 
+    @JsonIgnore
     private String verifyOtp;
 
+    @JsonIgnore
     private Date verifyOtpCreatedTime;
 
     @Enumerated(EnumType.STRING)

@@ -6,10 +6,31 @@ import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettin
 import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined";
 import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 import Header from "../../components/Header";
+import {useEffect, useState} from "react";
+import Cookies from "js-cookie";
+import {get} from "../../utils/axiosUtils";
 
 const Team = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+    const [data, setData] = useState([]);
+  // init call
+    useEffect(() => {
+        get("/user/team")
+        .then((response) => {
+            const newData = response.map((item, i) => ({
+                id: i + 1,
+                name: item.firstName + " " + item.lastName,
+                email: item.email,
+                role: item.role,
+            }));
+            setData(newData);
+            console.log(data);
+        })
+        .catch((error) => {
+            console.log(error);
+        });
+    },[]);
   const columns = [
     { field: "id", headerName: "ID" },
     {
@@ -20,29 +41,28 @@ const Team = () => {
     },
     { field: "email", headerName: "Email", flex: 1 },
     {
-      field: "access",
+      field: "role",
       headerName: "Role",
       flex: 1,
-      renderCell: ({ row: { access } }) => {
+      renderCell: ({ row: { role } }) => {
         return (
           <Box
-            width="100%"
+            width="25%"
             m="0 auto"
             p="5px"
             display="flex"
             justifyContent="center"
             backgroundColor={
-              access === "admin"
+                role === "admin"
                 ? colors.greenAccent[600]
                 : colors.greenAccent[700]
             }
             borderRadius="4px"
           >
-            {access === "admin" && <AdminPanelSettingsOutlinedIcon />}
-            {access === "manager" && <SecurityOutlinedIcon />}
-            {access === "user" && <LockOpenOutlinedIcon />}
+            {role === "ADMIN" && <AdminPanelSettingsOutlinedIcon />}
+            {role === "USER" && <LockOpenOutlinedIcon />}
             <Typography color={colors.grey[100]} sx={{ ml: "5px" }}>
-              {access}
+              {role}
             </Typography>
           </Box>
         );
@@ -78,7 +98,7 @@ const Team = () => {
           }
         }}
       >
-        <DataGrid rows={mockDataTeam} columns={columns} />
+        <DataGrid rows={data} columns={columns} />
       </Box>
     </Box>
   );
