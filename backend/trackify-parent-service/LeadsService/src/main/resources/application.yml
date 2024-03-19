@@ -1,0 +1,5 @@
+server:
+  port: 8384
+spring:
+  application:
+    name: LeadsService

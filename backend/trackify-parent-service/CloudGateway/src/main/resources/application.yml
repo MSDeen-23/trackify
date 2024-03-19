@@ -20,14 +20,24 @@ spring:
                 name: USER-SERVICE
                 fallbackuri: forward:/userServiceFallback
         - id: NOTIFICATION-SERVICE
-          uri: ${USER_SERVICE_URL:http://localhost:8383}
+          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8383}
           predicates:
             - Path=/api/v1/notification/**
           filters:
             - name: CircuitBreaker
               args:
-                name: USER-SERVICE
-                fallbackuri: forward:/userServiceFallback
+                name: NOTIFICATION-SERVICE
+                fallbackuri: forward:/notificationServiceFallback
+
+        - id: LEADS-SERVICE
+          uri: ${LEADS_SERVICE_URL:http://localhost:8384}
+          predicates:
+            - Path=/api/v1/leads/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: LEADS-SERVICE
+                fallbackuri: forward:/leadsServiceFallback
       globalcors:
         cors-configurations:
           '[/**]':
