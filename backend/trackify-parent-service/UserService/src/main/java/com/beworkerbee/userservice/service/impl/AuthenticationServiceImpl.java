@@ -210,9 +210,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 user.setInactiveReason(null);
                 User savedUser = userRepository.save(user);
 
-                PushNotificationMessage pushNotificationMessage =
-                        new PushNotificationMessage(NotificationType.INFO,"User: "+user.getEmail()+" is verified!");
-                notificationService.notifyAdminOfUser(user,pushNotificationMessage);
+                if(savedUser.getRole()!=Role.ADMIN) {
+                    PushNotificationMessage pushNotificationMessage =
+                            new PushNotificationMessage(NotificationType.INFO, "User: " + user.getEmail() + " is verified!");
+                    notificationService.notifyAdminOfUser(user, pushNotificationMessage);
+                }
 
                 return savedUser;
             } else {
